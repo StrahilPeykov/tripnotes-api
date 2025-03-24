@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from .auth import get_password_hash, verify_password
 from fastapi import HTTPException, status
+from .logging import logger 
 
 # User operations
 def get_user(db: Session, user_id: int):
@@ -34,33 +35,49 @@ def get_trip(db: Session, trip_id: int, user_id: int):
     return db.query(models.Trip).filter(models.Trip.id == trip_id, models.Trip.user_id == user_id).first()
 
 def create_trip(db: Session, trip: schemas.TripCreate, user_id: int):
-    db_trip = models.Trip(**trip.model_dump(), user_id=user_id)
-    db.add(db_trip)
-    db.commit()
-    db.refresh(db_trip)
-    return db_trip
+    try:
+        trip_data = trip.model_dump()
+        db_trip = models.Trip(**trip_data, user_id=user_id)
+        db.add(db_trip)
+        db.commit()
+        db.refresh(db_trip)
+        return db_trip
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating trip: {str(e)}")
+        raise
 
 def update_trip(db: Session, trip_id: int, trip: schemas.TripCreate, user_id: int):
-    db_trip = get_trip(db, trip_id, user_id)
-    if db_trip is None:
-        return None
-    
-    update_data = trip.model_dump()
-    for key, value in update_data.items():
-        setattr(db_trip, key, value)
-    
-    db.commit()
-    db.refresh(db_trip)
-    return db_trip
+    try:
+        db_trip = get_trip(db, trip_id, user_id)
+        if db_trip is None:
+            return None
+        
+        update_data = trip.model_dump()
+        for key, value in update_data.items():
+            setattr(db_trip, key, value)
+        
+        db.commit()
+        db.refresh(db_trip)
+        return db_trip
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating trip: {str(e)}")
+        raise
 
 def delete_trip(db: Session, trip_id: int, user_id: int):
-    db_trip = get_trip(db, trip_id, user_id)
-    if db_trip is None:
-        return None
-    
-    db.delete(db_trip)
-    db.commit()
-    return db_trip
+    try:
+        db_trip = get_trip(db, trip_id, user_id)
+        if db_trip is None:
+            return None
+        
+        db.delete(db_trip)
+        db.commit()
+        return db_trip
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting trip: {str(e)}")
+        raise
 
 # Note operations
 def get_notes(db: Session, trip_id: int, skip: int = 0, limit: int = 100):
@@ -70,30 +87,46 @@ def get_note(db: Session, note_id: int, trip_id: int):
     return db.query(models.Note).filter(models.Note.id == note_id, models.Note.trip_id == trip_id).first()
 
 def create_note(db: Session, note: schemas.NoteCreate, trip_id: int):
-    db_note = models.Note(**note.model_dump(), trip_id=trip_id)
-    db.add(db_note)
-    db.commit()
-    db.refresh(db_note)
-    return db_note
+    try:
+        note_data = note.model_dump()
+        db_note = models.Note(**note_data, trip_id=trip_id)
+        db.add(db_note)
+        db.commit()
+        db.refresh(db_note)
+        return db_note
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating note: {str(e)}")
+        raise
 
 def update_note(db: Session, note_id: int, note: schemas.NoteCreate, trip_id: int):
-    db_note = get_note(db, note_id, trip_id)
-    if db_note is None:
-        return None
-    
-    update_data = note.model_dump()
-    for key, value in update_data.items():
-        setattr(db_note, key, value)
-    
-    db.commit()
-    db.refresh(db_note)
-    return db_note
+    try:
+        db_note = get_note(db, note_id, trip_id)
+        if db_note is None:
+            return None
+        
+        update_data = note.model_dump()
+        for key, value in update_data.items():
+            setattr(db_note, key, value)
+        
+        db.commit()
+        db.refresh(db_note)
+        return db_note
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating note: {str(e)}")
+        raise
 
 def delete_note(db: Session, note_id: int, trip_id: int):
-    db_note = get_note(db, note_id, trip_id)
-    if db_note is None:
-        return None
-    
-    db.delete(db_note)
-    db.commit()
-    return db_note
+    try:
+        db_note = get_note(db, note_id, trip_id)
+        if db_note is None:
+            return None
+        
+        db.delete(db_note)
+        db.commit()
+        return db_note
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting note: {str(e)}")
+        raise

@@ -42,3 +42,14 @@ def login_for_access_token(
 @router.get("/users/me", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(auth.get_current_active_user)):
     return current_user
+
+@router.post("/logout")
+async def logout(
+    current_user: schemas.User = Depends(auth.get_current_active_user),
+    token: str = Depends(auth.oauth2_scheme)
+):
+    """
+    Logout the current user by blacklisting their token
+    """
+    auth.token_blacklist.add(token)
+    return {"message": "Successfully logged out"}

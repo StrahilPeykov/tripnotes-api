@@ -20,7 +20,7 @@ class Trip(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     destination = Column(String, index=True)
-    date = Column(Date)
+    trip_date = Column(Date)  
     created_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"))
     
@@ -33,7 +33,7 @@ class Note(Base):
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
-    media_url = Column(String, nullable=True)  # Optional field for image links
+    media_url = Column(String, nullable=True)  
     trip_id = Column(Integer, ForeignKey("trips.id"))
     
     trip = relationship("Trip", back_populates="notes")

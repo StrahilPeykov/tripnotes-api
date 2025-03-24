@@ -9,8 +9,15 @@ from . import schemas, models, crud
 from .database import get_db
 import os
 from dotenv import load_dotenv
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from .logging import logger
+from .errors import TripNotesException
 
 load_dotenv()
+
+# Add token blacklisting (basic version)
+# In a real app, we might use Redis for this
+token_blacklist = set()
 
 # Get environment variables
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -33,27 +40,31 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "iat": datetime.utcnow()})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    if token in token_blacklist:
+        logger.warning(f"Attempt to use blacklisted token")
+        raise TripNotesException.unauthorized("Token has been invalidated")
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
-            raise credentials_exception
+            logger.warning("Token missing 'sub' claim")
+            raise TripNotesException.unauthorized()
         token_data = schemas.TokenData(email=email)
-    except JWTError:
-        raise credentials_exception
+    except JWTError as e:
+        logger.warning(f"JWT error: {str(e)}")
+        raise TripNotesException.unauthorized()
+    
     user = crud.get_user_by_email(db, email=token_data.email)
     if user is None:
-        raise credentials_exception
+        logger.warning(f"User not found: {token_data.email}")
+        raise TripNotesException.unauthorized()
+    
     return user
 
 async def get_current_active_user(current_user: schemas.User = Depends(get_current_user)):
