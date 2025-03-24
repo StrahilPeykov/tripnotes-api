@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from datetime import date, datetime
 
-# User schemas
+# User base schemas (without trips relationship)
 class UserBase(BaseModel):
     email: EmailStr
 
@@ -14,10 +14,44 @@ class UserInDB(UserBase):
     is_active: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True  
 
-class User(UserInDB):
+# Trip schemas
+class TripBase(BaseModel):
+    title: str
+    destination: str
+    date: date
+
+class TripCreate(TripBase):
     pass
+
+# Note schemas
+class NoteBase(BaseModel):
+    content: str
+
+class NoteCreate(NoteBase):
+    pass
+
+class Note(NoteBase):
+    id: int
+    created_at: datetime
+    trip_id: int
+
+    class Config:
+        from_attributes = True  
+
+class Trip(TripBase):
+    id: int
+    created_at: datetime
+    user_id: int
+    notes: List[Note] = []
+
+    class Config:
+        from_attributes = True 
+
+# Complete User schema with trips (defined after Trip)
+class User(UserInDB):
+    trips: List[Trip] = []
 
 # Token schemas
 class Token(BaseModel):

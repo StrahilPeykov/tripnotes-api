@@ -2,10 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine
 from . import models
-from .routers import users
+from .routers import users, trips
 
 # Create tables in the database
-#models.Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="TripNotes API",
@@ -34,3 +34,4 @@ async def root():
 
 # Include routers
 app.include_router(users.router)
+app.include_router(trips.router)
