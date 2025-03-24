@@ -24,12 +24,14 @@ class TripBase(BaseModel):
     destination: str = Field(min_length=3, max_length=100, description="Trip destination")
     trip_date: date = Field(description="Trip date") 
 
-    @field_validator('trip_date')
-    @classmethod
-    def validate_trip_date(cls, v):
-        if v < date.today():
-            raise ValueError('Trip date cannot be in the past')
-        return v
+    # Modified to allow past trips for recording previous travel experiences
+    # If you want to enforce future dates for trip planning only, uncomment this validator
+    # @field_validator('trip_date')
+    # @classmethod
+    # def validate_trip_date(cls, v):
+    #     if v < date.today():
+    #         raise ValueError('Trip date cannot be in the past')
+    #     return v
 
 # Note schemas
 class NoteBase(BaseModel):

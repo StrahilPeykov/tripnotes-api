@@ -46,4 +46,12 @@ A RESTful API for managing travel journals and notes, built with FastAPI and Pos
 - PostgreSQL
 
 ### Installation
-TODO
+### Installation
+1. Clone this repository
+2. Create a virtual environment: `python -m venv venv`
+3. Activate it: `source venv/bin/activate` (Linux/Mac) or `venv\Scripts\activate` (Windows)
+4. Install dependencies: `pip install -r requirements.txt`
+5. Copy `.env.example` to `.env` and update with your PostgreSQL credentials
+6. Generate a secret key: `python key.py`
+7. Run migrations: `alembic upgrade head`
+8. Start the server: `uvicorn app.main:app --reload`
