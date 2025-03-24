@@ -61,3 +61,39 @@ def delete_trip(db: Session, trip_id: int, user_id: int):
     db.delete(db_trip)
     db.commit()
     return db_trip
+
+# Note operations
+def get_notes(db: Session, trip_id: int, skip: int = 0, limit: int = 100):
+    return db.query(models.Note).filter(models.Note.trip_id == trip_id).offset(skip).limit(limit).all()
+
+def get_note(db: Session, note_id: int, trip_id: int):
+    return db.query(models.Note).filter(models.Note.id == note_id, models.Note.trip_id == trip_id).first()
+
+def create_note(db: Session, note: schemas.NoteCreate, trip_id: int):
+    db_note = models.Note(**note.model_dump(), trip_id=trip_id)
+    db.add(db_note)
+    db.commit()
+    db.refresh(db_note)
+    return db_note
+
+def update_note(db: Session, note_id: int, note: schemas.NoteCreate, trip_id: int):
+    db_note = get_note(db, note_id, trip_id)
+    if db_note is None:
+        return None
+    
+    update_data = note.model_dump()
+    for key, value in update_data.items():
+        setattr(db_note, key, value)
+    
+    db.commit()
+    db.refresh(db_note)
+    return db_note
+
+def delete_note(db: Session, note_id: int, trip_id: int):
+    db_note = get_note(db, note_id, trip_id)
+    if db_note is None:
+        return None
+    
+    db.delete(db_note)
+    db.commit()
+    return db_note

@@ -28,6 +28,7 @@ class TripCreate(TripBase):
 # Note schemas
 class NoteBase(BaseModel):
     content: str
+    media_url: Optional[str] = None
 
 class NoteCreate(NoteBase):
     pass
@@ -38,7 +39,7 @@ class Note(NoteBase):
     trip_id: int
 
     class Config:
-        from_attributes = True  
+        orm_mode = True
 
 class Trip(TripBase):
     id: int
@@ -47,7 +48,7 @@ class Trip(TripBase):
     notes: List[Note] = []
 
     class Config:
-        from_attributes = True 
+        orm_mode = True
 
 # Complete User schema with trips (defined after Trip)
 class User(UserInDB):
