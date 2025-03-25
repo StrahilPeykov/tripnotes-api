@@ -46,7 +46,6 @@ A RESTful API for managing travel journals and notes, built with FastAPI and Pos
 - PostgreSQL
 
 ### Installation
-### Installation
 1. Clone this repository
 2. Create a virtual environment: `python -m venv venv`
 3. Activate it: `source venv/bin/activate` (Linux/Mac) or `venv\Scripts\activate` (Windows)
